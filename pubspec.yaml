@@ -45,6 +45,8 @@ flutter:
 
   assets:
     - test/assets/
+    - assets/
+    - assets/i18n/
 
   # To add assets to your application, add an assets section, like this:
   # assets:

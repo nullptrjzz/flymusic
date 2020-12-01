@@ -7,7 +7,9 @@ import 'package:flutter/services.dart';
 class Config {
   Map _items;
 
-  Config({Map items}) {
+  Config();
+
+  Config.fromItems({Map items}) {
     this._items = Map()..addAll(items);
   }
 
@@ -115,7 +117,7 @@ abstract class ConfigLoader {
   Future _init() {
     return _loadConfigFile().then((fileContent) {
       if (fileContent == "") {
-        _config = Config(items: {});
+        _config = Config.fromItems(items: {});
       } else {
         dynamic decoded;
         try {
@@ -125,9 +127,9 @@ abstract class ConfigLoader {
         }
 
         if (decoded is Map) {
-          _config = Config(items: decoded);
+          _config = Config.fromItems(items: decoded);
         } else {
-          _config = Config(items: {});
+          _config = Config.fromItems(items: {});
         }
       }
 

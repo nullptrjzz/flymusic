@@ -5,7 +5,7 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   test('测试Config()类对配置文件的加载和解析', () {
-    Config config = new Config(items: {
+    Config config = new Config.fromItems(items: {
       'a': {
         'b': 1,
         'c': [0, 1, 2]
@@ -18,7 +18,7 @@ void main() {
   });
   test('测试Config()类的set()函数', () {
     expect(
-        Config(items: {
+        Config.fromItems(items: {
           'a': {
             'b': 1,
             'c': [0, 1, 2]
@@ -31,7 +31,7 @@ void main() {
           }
         });
     expect(
-        Config(items: {
+        Config.fromItems(items: {
           'a': {
             'b': 1,
             'c': [0, 1, 2]
@@ -44,7 +44,7 @@ void main() {
           }
         });
     expect(
-        Config(items: {
+        Config.fromItems(items: {
           'a': {
             'b': 1,
             'c': [0, 1, 2]
@@ -57,7 +57,7 @@ void main() {
           }
         });
     expect(
-        Config(items: {
+        Config.fromItems(items: {
           'a': {
             'b': 1,
             'c': [0, 1, 2]
@@ -71,7 +71,7 @@ void main() {
           }
         });
     expect(
-        Config(items: {
+        Config.fromItems(items: {
           'a': {
             'b': 1,
             'c': [0, 1, 2]
@@ -86,7 +86,7 @@ void main() {
         });
     try {
       expect(
-          Config(items: {
+          Config.fromItems(items: {
             'a': {
               'b': 1,
               'c': [0, 1, 2]
