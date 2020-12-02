@@ -1,8 +1,9 @@
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 var themeData = ThemeData(
-    platform: TargetPlatform.windows,
+    platform: defaultTargetPlatform,
     sliderTheme: FlyMusicSliderTheme()
 );
 

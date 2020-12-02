@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flymusic/ui/play_handler.dart';
 import 'package:flymusic/util/config.dart';
 import 'package:menubar/menubar.dart' as menuBar;
@@ -14,13 +15,16 @@ class _HomePageState extends State<HomePage> {
   void _buildMenuBar() {
     menuBar.setApplicationMenu([
       menuBar.Submenu(label: i18nConfig.get('menu.file'), children: [
-        menuBar.MenuItem(label: i18nConfig.get('menu.exit'), onClicked: () {})
+        menuBar.MenuItem(label: i18nConfig.get('menu.exit'), onClicked: () {
+          SystemNavigator.pop(animated: true);
+        })
       ]),
     ]);
   }
 
   @override
   void initState() {
+    super.initState();
     _buildMenuBar();
   }
 
