@@ -16,7 +16,7 @@ dependencies:
 
   cupertino_icons: ^1.0.1
   flutter_audio_desktop: ^0.0.7
-
+  path_provider: ^1.6.24
 
   file_chooser:
     git:

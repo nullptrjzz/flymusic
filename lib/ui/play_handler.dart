@@ -3,6 +3,8 @@ import 'package:flutter/widgets.dart';
 import 'package:flymusic/theme/theme.dart';
 import 'package:flymusic/util/player.dart';
 
+Player audioPlayer = Player();
+
 class PlayHandler extends StatefulWidget {
 
   @override
@@ -10,25 +12,40 @@ class PlayHandler extends StatefulWidget {
 }
 
 class _PlayHandlerState extends State<PlayHandler> {
-  bool _playing = false;
-  double _position = 0;
-  double _duration = (601 * 1000).toDouble();
+  int _position = 0;
+  int _duration = 0;
 
   int _volume = 0;
   bool _mute = false;
+  /// 防止进度条闪烁
+  bool _drag = false;
   String _curName = 'FlyMusic';
 
   @override
   void initState() {
     super.initState();
 
-    _volume = (audioPlayer.volume * 100).toInt();
+    _volume = audioPlayer.volume;
+    audioPlayer.listen((name) {
+      setState(() {
+        _curName = name;
+      });
+    }, (p, d) {
+      if (!_drag) {
+        setState(() {
+          _position = p;
+          _duration = d;
+        });
+      }
+    });
   }
 
   void _updatePosition(double position) {
     setState(() {
-      _position = position.roundToDouble();
+      _position = position.toInt();
     });
+    audioPlayer.setPosition(position.toInt());
+    audioPlayer.play();
   }
 
   void _updateVolume(double v, [bool mute]) {
@@ -42,6 +59,7 @@ class _PlayHandlerState extends State<PlayHandler> {
         _volume = v.toInt();
       });
     }
+    audioPlayer.setVolume(_mute ? 0 : _volume);
   }
 
   @override
@@ -69,8 +87,12 @@ class _PlayHandlerState extends State<PlayHandler> {
               // minWidth: 60,
             ),
             IconButton(
-              onPressed: () {},
-              icon: Icon(_playing ? Icons.pause : Icons.play_arrow),
+              onPressed: audioPlayer.isPlaying() ? () {
+                audioPlayer.pause();
+              } : () {
+                audioPlayer.play();
+              },
+              icon: Icon(audioPlayer.isPlaying() ? Icons.pause : Icons.play_arrow),
               iconSize: 36,
               splashRadius: 24,
               // minWidth: 60,
@@ -103,9 +125,21 @@ class _PlayHandlerState extends State<PlayHandler> {
                     ),
                     Slider(
                       min: 0,
-                      max: _duration,
-                      value: _position,
-                      onChanged: _updatePosition,
+                      max: _duration.toDouble(),
+                      value: _position.toDouble(),
+                      onChanged: (pos) {
+                        setState(() {
+                          _position = pos.toInt();
+                        });
+                      },
+                      onChangeStart: (pos) {
+                        _drag = true;
+                        audioPlayer.pause();
+                      },
+                      onChangeEnd: (pos) {
+                        _drag = false;
+                        _updatePosition(pos);
+                      },
                     )
                   ],
                 )

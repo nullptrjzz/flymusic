@@ -1,16 +1,8 @@
-import 'dart:async';
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flymusic/theme/theme.dart';
-import 'package:flymusic/ui/home_page.dart';
-import 'package:flymusic/util/config.dart';
+import 'package:flymusic/ui/initialize.dart';
 import 'package:window_size/window_size.dart' as windowSize;
 import 'dart:math' as math;
-
-Future initialize() async {
-  await initI18nConfig();
-}
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -30,9 +22,7 @@ void main() {
 
   });
 
-  initialize().then((value) {
-    runApp(FlyMusicApp());
-  });
+  runApp(FlyMusicApp());
 }
 
 class FlyMusicApp extends StatelessWidget {
@@ -42,7 +32,7 @@ class FlyMusicApp extends StatelessWidget {
       title: 'FlyMusic',
       theme: themeData,
       home: Scaffold(
-        body: HomePage(),
+        body: InitializePage(),
       ),
     );
   }
