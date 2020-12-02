@@ -1,4 +1,5 @@
 {
+  "app_name": "FlyMusic",
   "home_page": {
 
   },
@@ -12,6 +13,21 @@
 
   "menu": {
     "file": "文件",
-    "exit": "退出"
+    "test": "测试",
+    "exit": "退出",
+
+    "edit": "编辑",
+    "options": "首选项",
+
+    "library": "库",
+
+    "control": "控制",
+    "skip_previous": "上一曲",
+    "play_pause": "播放/暂停",
+    "skip_next": "下一曲",
+    "stop": "停止",
+
+    "help": "帮助",
+    "about": "关于"
   }
 }

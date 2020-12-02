@@ -18,17 +18,14 @@ void main() {
     windowSize.setWindowTitle('FlyMusic');
     if (window.screen != null) {
       final screenFrame = window.screen.visibleFrame;
-      final width = math.max((screenFrame.width / 2).roundToDouble(), 800.0);
-      final height = math.max((screenFrame.height / 2).roundToDouble(), 600.0);
+      final width = math.max((screenFrame.width / 2).roundToDouble(), 1400.0);
+      final height = math.max((screenFrame.height / 2).roundToDouble(), 900.0);
       final left = ((screenFrame.width - width) / 2).roundToDouble();
       final top = ((screenFrame.height - height) / 3).roundToDouble();
       final frame = Rect.fromLTWH(left, top, width, height);
       windowSize.setWindowFrame(frame);
 
-      if (Platform.isMacOS) {
-        windowSize.setWindowMinSize(Size(800, 600));
-        windowSize.setWindowMaxSize(Size(1600, 1200));
-      }
+      windowSize.setWindowMinSize(Size(800, 600));
     }
 
   });

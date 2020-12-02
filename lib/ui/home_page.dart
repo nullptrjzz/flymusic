@@ -14,10 +14,33 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   void _buildMenuBar() {
     menuBar.setApplicationMenu([
-      menuBar.Submenu(label: i18nConfig.get('menu.file'), children: [
+      menuBar.Submenu(label: i18nConfig.get('menu.file'),children: [
         menuBar.MenuItem(label: i18nConfig.get('menu.exit'), onClicked: () {
           SystemNavigator.pop(animated: true);
         })
+      ]),
+      menuBar.Submenu(label: i18nConfig.get('menu.edit'),children: [
+        menuBar.MenuDivider(),
+        menuBar.MenuItem(label: i18nConfig.get('menu.options'), onClicked: () {
+        })
+      ]),
+      menuBar.Submenu(label: i18nConfig.get('menu.library'),children: [
+      ]),
+      menuBar.Submenu(label: i18nConfig.get('menu.control'),children: [
+        menuBar.MenuItem(label: i18nConfig.get('menu.skip_previous'), onClicked: () {
+        }),
+        menuBar.MenuItem(label: i18nConfig.get('menu.play_pause'), onClicked: () {
+        }),
+        menuBar.MenuItem(label: i18nConfig.get('menu.skip_next'), onClicked: () {
+        }),
+        menuBar.MenuDivider(),
+        menuBar.MenuItem(label: i18nConfig.get('menu.stop'), onClicked: () {
+        })
+      ]),
+      menuBar.Submenu(label: i18nConfig.get('menu.help'), children: [
+        menuBar.MenuItem(label: i18nConfig.get('menu.about'), onClicked: () {
+          showAboutDialog(context: context, applicationName: i18nConfig.get('app_name'), applicationVersion: '1.0');
+        }),
       ]),
     ]);
   }

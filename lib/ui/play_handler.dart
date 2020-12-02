@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flymusic/theme/theme.dart';
+import 'package:flymusic/util/player.dart';
 
 class PlayHandler extends StatefulWidget {
 
@@ -16,6 +17,13 @@ class _PlayHandlerState extends State<PlayHandler> {
   int _volume = 0;
   bool _mute = false;
   String _curName = 'FlyMusic';
+
+  @override
+  void initState() {
+    super.initState();
+
+    _volume = (audioPlayer.volume * 100).toInt();
+  }
 
   void _updatePosition(double position) {
     setState(() {
