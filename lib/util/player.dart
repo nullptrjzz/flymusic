@@ -5,14 +5,17 @@ import 'package:flutter_audio_desktop/flutter_audio_desktop.dart';
 AudioPlayer audioPlayer;
 
 Future initAudioPlayer() async {
-  audioPlayer = AudioPlayer();
-  audioPlayer.setDevice(deviceIndex: 1);
+  audioPlayer = AudioPlayer(debug: true);
+  audioPlayer.setDevice(deviceIndex: (await audioPlayer.getDevices())['default']);
 }
 
+/// 开发时应使用Player类进行控制，屏蔽具体实现细节
+/// flutter_audio_desktop可以被替换为其他插件
 class Player {
   dynamic _loadListener;
   dynamic _playListener;
 
+  /// 使用单例模式构建播放器
   factory Player() => _getInstance();
   Player get instance => _getInstance();
 
@@ -32,8 +35,14 @@ class Player {
   bool isPaused() => audioPlayer.isPaused;
   bool isStopped() => audioPlayer.isStopped;
 
-  void load(String uri) {
-    audioPlayer.load(uri).then((value) => _loadListener(value.toString()));
+  Future load(String uri) async {
+    if (_loadListener == null || _playListener == null) {
+      throw ArgumentError('method listen() must be called first');
+    }
+    bool value = await audioPlayer.load(uri);
+    if (_loadListener != null) {
+      _loadListener(value.toString());
+    }
   }
 
   void setPosition(int pos) {
@@ -57,6 +66,7 @@ class Player {
 
   Future play() async {
     return audioPlayer.play().then((value) {
+      print('play: $value');
       Timer.periodic(Duration(milliseconds: 50), (timer) async {
         if (!audioPlayer.isPlaying) {
           timer.cancel();
@@ -65,7 +75,12 @@ class Player {
         int duration = await _getDuration();
         int position = await _getPosition();
 
-        _playListener(position, duration);
+        if (_playListener != null) {
+          _playListener(position, duration);
+          if (position == duration) {
+            stop();
+          }
+        }
       });
     });
   }

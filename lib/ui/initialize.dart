@@ -17,7 +17,7 @@ class _InitializePageState extends State<InitializePage> {
 
   void _finish() {
     Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => HomePage()));
+        MaterialPageRoute(builder: (context) => Scaffold(body: HomePage(),)));
   }
 
   Future initialize() async {

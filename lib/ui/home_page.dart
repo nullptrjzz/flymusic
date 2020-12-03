@@ -12,6 +12,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  TextEditingController _controller = TextEditingController();
   void _buildMenuBar() {
     menuBar.setApplicationMenu([
       menuBar.Submenu(label: i18nConfig.get('menu.file'),children: [
@@ -58,7 +59,19 @@ class _HomePageState extends State<HomePage> {
       child: Column(
         children: [
           Expanded(
-            child: Container(),
+            child: Container(
+              child: TextField(
+                controller: _controller,
+              ),
+            ),
+          ),
+
+          MaterialButton(
+            child: Text('Load'),
+            onPressed: () {
+              print('Load ${_controller.value.text}');
+              audioPlayer.load(_controller.value.text);
+            },
           ),
 
           PlayHandler()

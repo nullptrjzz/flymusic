@@ -88,9 +88,9 @@ packages:
   flutter_audio_desktop:
     dependency: "direct main"
     description:
-      name: flutter_audio_desktop
-      url: "https://mirrors.tuna.tsinghua.edu.cn/dart-pub"
-    source: hosted
+      path: "../flutter_audio_desktop"
+      relative: true
+    source: path
     version: "0.0.7"
   flutter_test:
     dependency: "direct dev"
