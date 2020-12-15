@@ -1,19 +1,19 @@
 import 'dart:async';
 
-import 'package:flutter_audio_desktop/flutter_audio_desktop.dart';
+import 'package:flutter_audio_plugin/flutter_audio_plugin.dart';
 
 AudioPlayer audioPlayer;
 
 Future initAudioPlayer() async {
   audioPlayer = AudioPlayer(debug: true);
-  audioPlayer.setDevice(deviceIndex: (await audioPlayer.getDevices())['default']);
 }
 
 /// 开发时应使用Player类进行控制，屏蔽具体实现细节
-/// flutter_audio_desktop可以被替换为其他插件
+/// flutter_audio_plugin可以被替换为其他插件
 class Player {
   dynamic _loadListener;
   dynamic _playListener;
+  final defaultVolume = 50;
 
   /// 使用单例模式构建播放器
   factory Player() => _getInstance();
@@ -29,76 +29,65 @@ class Player {
   }
 
   Player._internal() {
+    setVolume(defaultVolume);
   }
 
   bool isPlaying() => audioPlayer.isPlaying;
   bool isPaused() => audioPlayer.isPaused;
   bool isStopped() => audioPlayer.isStopped;
 
-  Future load(String uri) async {
+  void load(String uri) {
     if (_loadListener == null || _playListener == null) {
       throw ArgumentError('method listen() must be called first');
     }
-    bool value = await audioPlayer.load(uri);
+    int value = audioPlayer.load(uri);
+    // audioPlayer.setDevice(deviceIndex: (audioPlayer.getDevices())['default']);
     if (_loadListener != null) {
-      _loadListener(value.toString());
+      _loadListener((value == 0).toString());
     }
   }
 
-  void setPosition(int pos) {
-    audioPlayer.setPosition(Duration(milliseconds: pos));
+  void setPosition(double pos) {
+    audioPlayer.setPosition(pos);
   }
 
-  Future<int> _getPosition() async {
-    dynamic position = await audioPlayer.getPosition();
-    return position == false ? 0 : (position as Duration).inMilliseconds;
+  double getPosition() {
+    return audioPlayer.getPosition();
   }
 
-  Future<int> _getDuration() async {
-    dynamic duration = await audioPlayer.getDuration();
-    return duration == false ? 0 : (duration as Duration).inMilliseconds;
+  double getDuration() {
+    return audioPlayer.getDuration();
   }
 
   int get volume => _getVolume();
   int _getVolume() {
-    return (audioPlayer.volume * 100).toInt();
+    return audioPlayer.volume;
   }
 
-  Future play() async {
-    return audioPlayer.play().then((value) {
-      print('play: $value');
-      Timer.periodic(Duration(milliseconds: 50), (timer) async {
-        if (!audioPlayer.isPlaying) {
-          timer.cancel();
-        }
-
-        int duration = await _getDuration();
-        int position = await _getPosition();
-
-        if (_playListener != null) {
-          _playListener(position, duration);
-          if (position == duration) {
-            stop();
-          }
-        }
-      });
-    });
+  void play() {
+    audioPlayer.play();
   }
 
-  Future pause() async {
-    return audioPlayer.pause();
+  void pause() {
+    audioPlayer.pause();
   }
 
-  Future stop() async {
-    return audioPlayer.stop();
+  void stop() {
+    audioPlayer.stop();
   }
 
   void setVolume(int v) {
-    audioPlayer.setVolume(v / 100);
+    audioPlayer.setVolume(v);
   }
 
-  void listen(dynamic loadListener, dynamic playListener) {
+  void listen(dynamic loadListener, dynamic playListener, dynamic stateListener) {
     this._loadListener = loadListener;
     this._playListener = playListener;
+    audioPlayer.setPositionListener(_playListener);
+    audioPlayer.setStateListener(stateListener);
+  }
+
+  void close() {
+    audioPlayer.close();
   }
 }

@@ -15,10 +15,11 @@ dependencies:
     sdk: flutter
 
   cupertino_icons: ^1.0.1
-  flutter_audio_desktop:
-    path: ../flutter_audio_desktop
+  flutter_audio_plugin:
+    path: ../flutter_audio_plugin
 
   path_provider: ^1.6.24
+  fast_gbk: ^0.1.2
 
   file_chooser:
     git:

@@ -48,5 +48,4 @@ app.*.map.json
 # Desktop project
 ios/
 android/
-windows/
 linux/

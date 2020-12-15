@@ -1,3 +1,7 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
+import 'package:fast_gbk/fast_gbk.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flymusic/ui/play_handler.dart';
@@ -69,8 +73,7 @@ class _HomePageState extends State<HomePage> {
           MaterialButton(
             child: Text('Load'),
             onPressed: () {
-              print('Load ${_controller.value.text}');
-              audioPlayer.load(_controller.value.text);
+              audioPlayer.load(_controller.text.toString());
             },
           ),
 

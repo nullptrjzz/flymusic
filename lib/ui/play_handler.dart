@@ -12,8 +12,8 @@ class PlayHandler extends StatefulWidget {
 }
 
 class _PlayHandlerState extends State<PlayHandler> {
-  int _position = 0;
-  int _duration = 0;
+  double _position = 0;
+  double _duration = 0;
 
   int _volume = 0;
   bool _mute = false;
@@ -24,7 +24,6 @@ class _PlayHandlerState extends State<PlayHandler> {
   @override
   void initState() {
     super.initState();
-
     _volume = audioPlayer.volume;
     audioPlayer.listen((name) {
       setState(() {
@@ -33,18 +32,20 @@ class _PlayHandlerState extends State<PlayHandler> {
     }, (p, d) {
       if (!_drag) {
         setState(() {
-          _position = p;
-          _duration = d;
+          _position = p < 0 ? 0 : p;
+          _duration = d < 0 ? 0 : d;
         });
       }
+    }, (lo, pl, pa, st) {
+
     });
   }
 
   void _updatePosition(double position) {
     setState(() {
-      _position = position.toInt();
+      _position = position;
     });
-    audioPlayer.setPosition(position.toInt());
+    audioPlayer.setPosition(position);
     audioPlayer.play();
   }
 
@@ -64,8 +65,8 @@ class _PlayHandlerState extends State<PlayHandler> {
 
   @override
   Widget build(BuildContext context) {
-    Duration duration = Duration(milliseconds: _duration.toInt());
-    Duration position = Duration(milliseconds: _position.toInt());
+    Duration duration = Duration(seconds: _duration.toInt());
+    Duration position = Duration(seconds: _position.toInt());
 
     var posText = '${position.inMinutes < 10 ? '0' : ''}${position.inMinutes}:'
         '${(position.inSeconds % 60) < 10 ? '0' : ''}${(position.inSeconds % 60)}';
@@ -125,11 +126,11 @@ class _PlayHandlerState extends State<PlayHandler> {
                     ),
                     Slider(
                       min: 0,
-                      max: _duration.toDouble(),
-                      value: _position.toDouble(),
+                      max: _duration < 0 ? 0 : _duration,
+                      value: _position < 0 ? 0 : _position,
                       onChanged: (pos) {
                         setState(() {
-                          _position = pos.toInt();
+                          _position = pos;
                         });
                       },
                       onChangeStart: (pos) {
@@ -182,4 +183,5 @@ class _PlayHandlerState extends State<PlayHandler> {
       elevation: 4,
     );
   }
+
 }
