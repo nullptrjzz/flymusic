@@ -21,11 +21,12 @@ dependencies:
   path_provider: ^1.6.24
   fast_gbk: ^0.1.2
 
-  file_chooser:
-    git:
-      url: git://github.com/google/flutter-desktop-embedding.git
-      path: plugins/file_chooser
-      ref: 040f36c82b63e8764ec2fd97066767503a667b6d
+  file_picker_cross: ^4.2.6
+#  file_chooser:
+#    git:
+#      url: git://github.com/google/flutter-desktop-embedding.git
+#      path: plugins/file_chooser
+#      ref: 040f36c82b63e8764ec2fd97066767503a667b6d
 
   menubar:
     git:

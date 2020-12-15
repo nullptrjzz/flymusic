@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flymusic/theme/theme.dart';
@@ -126,8 +128,8 @@ class _PlayHandlerState extends State<PlayHandler> {
                     ),
                     Slider(
                       min: 0,
-                      max: _duration < 0 ? 0 : _duration,
-                      value: _position < 0 ? 0 : _position,
+                      max: max(_duration, 0),
+                      value: min(max(_position, 0), _duration),
                       onChanged: (pos) {
                         setState(() {
                           _position = pos;
