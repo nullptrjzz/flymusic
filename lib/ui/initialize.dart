@@ -25,6 +25,7 @@ class _InitializePageState extends State<InitializePage> {
       _stateText = 'Loading configs...';
     });
     await initI18nConfig();
+    await initSysConfig();
     await initAudioPlayer();
   }
 

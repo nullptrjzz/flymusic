@@ -105,4 +105,26 @@ void main() {
       expect(value.getAll(), {'a': 'yes'});
     });
   });
+  test('测试Config()类对配置文件的合并', () {
+    Config config = new Config.fromItems(items: {
+      'a': {
+        'b': 1,
+        'c': [0, 1, 2]
+      }
+    });
+    Config newCfg = new Config.fromItems(items: {
+      'a': {
+        'b': 2,
+        'c': [0, 1, 2, 3],
+        'd': [0]
+      }
+    });
+    expect(Config.merge(config, newCfg).getAll(), {
+      'a': {
+        'b': 1,
+        'c': [0, 1, 2, 3],
+        'd': [0]
+      }
+    });
+  });
 }

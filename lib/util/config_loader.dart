@@ -1,4 +1,6 @@
+import 'dart:collection';
 import 'dart:convert';
+import 'dart:ffi';
 import 'dart:io';
 
 import 'package:flutter/services.dart';
@@ -30,6 +32,7 @@ class Config {
         cur = cur[s];
       } else if (cur is List) {
         if (int.tryParse(s) != null) {
+          if (int.parse(s) >= (cur as List).length) return null;
           cur = cur[int.parse(s)];
         } else {
           cur = null;
@@ -100,6 +103,53 @@ class Config {
 
     return _items;
   }
+
+  static Config merge(Config old, Config theNew) {
+    // Add only the different part
+    if (old._items == null || old._items.isEmpty) {
+      return theNew;
+    }
+
+    Queue q = Queue();
+    q.add(theNew._items.keys.first.toString());
+    while (q.isNotEmpty) {
+      dynamic key = q.removeFirst();
+      dynamic theOldItem = old.get(key);
+      dynamic theNewItem = theNew.get(key);
+      if (theOldItem == null) {
+        old.set(key, theNewItem);
+        continue;
+      }
+
+      if (theNewItem is Map) {
+        // add all keys
+        for (var k in theNewItem.keys) {
+          q.add('$key.$k');
+        }
+      } else if (theNewItem is List) {
+        // add all indexes
+        for (var i = 0; i < theNewItem.length; i++) {
+          q.add('$key.$i');
+        }
+      } else {
+        if (old.get(key) == null) {
+          old.set(key, theNewItem);
+        }
+      }
+    }
+
+    return old;
+  }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is Config &&
+          runtimeType == other.runtimeType &&
+          _items == other._items;
+
+  @override
+  int get hashCode => _items.hashCode;
 }
 
 /// Load .json config file and parse it
@@ -171,6 +221,15 @@ class FileConfigLoader extends ConfigLoader {
     } else {
       return Future.value("");
     }
+  }
+
+  Future<dynamic> saveConfigFile(Config cfg) {
+    var f = File(file);
+    if (!f.existsSync()) {
+      f.createSync(recursive: true);
+    }
+    f.writeAsString(jsonEncode(cfg._items), flush: true);
+    return null;
   }
 }
 
