@@ -11,6 +11,11 @@
     "finished": "初始化完成"
   },
 
+  "player": {
+    "unknown": "未知",
+    "error_while_loading_file": "加载音频文件出错"
+  },
+
   "menu": {
     "file": "文件",
     "test": "测试",

@@ -6,6 +6,7 @@ import 'config_loader.dart';
 
 Config i18nConfig;
 Config sysConfig;
+FileConfigLoader sysConfigLoader;
 
 final _cfgPath = '.flymusic/config.json';
 
@@ -26,12 +27,12 @@ Future initSysConfig() async {
     cfgFile.createSync();
   }
 
-  FileConfigLoader loader = FileConfigLoader(cfgFile.path);
-  Config localConfig = await loader.getConfig();
+  sysConfigLoader = FileConfigLoader(cfgFile.path);
+  sysConfig = await sysConfigLoader.getConfig();
   Config innerConfig = await AssetsConfigLoader('assets/config.json').getConfig();
-  if (localConfig != innerConfig) {
-    localConfig = Config.merge(localConfig, innerConfig);
-    loader.saveConfigFile(localConfig);
+  if (sysConfig != innerConfig) {
+    sysConfig = Config.merge(sysConfig, innerConfig);
+    sysConfigLoader.saveConfigFile(sysConfig);
   }
   return;
 }

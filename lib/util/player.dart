@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_audio_plugin/flutter_audio_plugin.dart';
+import 'package:flymusic/util/config.dart';
 
 AudioPlayer audioPlayer;
 
@@ -11,9 +12,12 @@ Future initAudioPlayer() async {
 /// 开发时应使用Player类进行控制，屏蔽具体实现细节
 /// flutter_audio_plugin可以被替换为其他插件
 class Player {
+  final _uriTitlePattern = RegExp('[/\\\\]');
+  final _artistPattern = RegExp('( )+');
   dynamic _loadListener;
   dynamic _playListener;
   final defaultVolume = 50;
+  dynamic _audioTags;
 
   /// 使用单例模式构建播放器
   factory Player() => _getInstance();
@@ -29,7 +33,7 @@ class Player {
   }
 
   Player._internal() {
-    setVolume(defaultVolume);
+    setVolume(sysConfig.get('inner.default_volume'));
   }
 
   bool isPlaying() => audioPlayer.isPlaying;
@@ -41,9 +45,18 @@ class Player {
       throw ArgumentError('method listen() must be called first');
     }
     int value = audioPlayer.load(uri);
-    // audioPlayer.setDevice(deviceIndex: (audioPlayer.getDevices())['default']);
-    if (_loadListener != null) {
-      _loadListener((value == 0).toString());
+    if (value == 0) {
+      _audioTags = audioPlayer.audioTags(uri);
+      // audioPlayer.setDevice(deviceIndex: (audioPlayer.getDevices())['default']);
+      if (_loadListener != null) {
+        _loadListener('${_audioTags['TITLE'] ?? uri.split(_uriTitlePattern).last} - '
+            '${_audioTags['ARTIST'] == null ? i18nConfig.get('player.unknown')
+            : _audioTags['ARTIST'].toString().replaceAll(_artistPattern, '/')}');
+      }
+    } else {
+      if (_loadListener != null) {
+        _loadListener(i18nConfig.get('player.error_while_loading_file'));
+      }
     }
   }
 
@@ -78,6 +91,9 @@ class Player {
 
   void setVolume(int v) {
     audioPlayer.setVolume(v);
+    // 记录到配置中
+    sysConfig.set('inner.default_volume', v);
+    sysConfigLoader.saveConfigFileAsync(sysConfig);
   }
 
   void listen(dynamic loadListener, dynamic playListener, dynamic stateListener) {

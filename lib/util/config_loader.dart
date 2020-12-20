@@ -1,6 +1,6 @@
+import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
-import 'dart:ffi';
 import 'dart:io';
 
 import 'package:flutter/services.dart';
@@ -111,7 +111,7 @@ class Config {
     }
 
     Queue q = Queue();
-    q.add(theNew._items.keys.first.toString());
+    q.addAll(theNew._items.keys);
     while (q.isNotEmpty) {
       dynamic key = q.removeFirst();
       dynamic theOldItem = old.get(key);
@@ -213,6 +213,11 @@ class FileConfigLoader extends ConfigLoader {
   String encoding;
   FileConfigLoader(String file, {this.encoding = 'utf-8'}) : super(file);
 
+  int lastWriteTime = 0;
+  int writeLimit = 3000; // 3s
+  Config writeQueue;
+  bool timer = false;
+
   @override
   Future<String> _loadConfigFile() {
     var f = File(file);
@@ -230,6 +235,27 @@ class FileConfigLoader extends ConfigLoader {
     }
     f.writeAsString(jsonEncode(cfg._items), flush: true);
     return null;
+  }
+
+  /// 通过令牌桶方式限制写入频率
+  void saveConfigFileAsync(Config cfg) {
+    if (DateTime.now().millisecondsSinceEpoch - lastWriteTime > writeLimit) {
+      writeQueue = null;
+      lastWriteTime = DateTime.now().millisecondsSinceEpoch;
+      saveConfigFile(cfg);
+    } else {
+      // 加入待写入队列，防止最后一次修改被抛弃
+      writeQueue = cfg;
+      if (!timer) {
+        timer = true;
+        Timer(Duration(milliseconds: writeLimit), () {
+          if (writeQueue != null) {
+            saveConfigFileAsync(writeQueue);
+          }
+          timer = false;
+        });
+      }
+    }
   }
 }
 

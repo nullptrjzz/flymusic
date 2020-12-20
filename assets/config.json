@@ -1,3 +1,6 @@
 {
-  "tag": "test"
+  "tag": "test",
+  "inner": {
+    "default_volume": 50
+  }
 }
