@@ -30,6 +30,7 @@ class Player {
   LoopMode loopMode = LoopMode.Loop;
 
   PlayList playList;
+  PlayListItem playingItem;
 
   /// 使用单例模式构建播放器
   factory Player() => _getInstance();
@@ -51,13 +52,14 @@ class Player {
     playList = PlayList();
     playList.onChange = (index, item) {
       load(item);
+      play();
     };
     audioPlayer.setFinishListener(() {
-      print('finish');
       if (playMode == PlayMode.Single) {
         if (loopMode == LoopMode.Loop) {
           // 单曲循环在播放停止后自动开始重播
-          setPosition(0);
+          load(playingItem);
+          play();
         } else {
           stop();
         }
@@ -81,6 +83,7 @@ class Player {
       stop();
     }
 
+    playingItem = playListItem;
     int value = audioPlayer.load(playListItem.fileLocation);
     if (value == 0) {
       playListItem.valid = true;
@@ -99,6 +102,10 @@ class Player {
 
   void setPosition(double pos) {
     audioPlayer.setPosition(pos);
+  }
+
+  void setPositionB(int pos) {
+    audioPlayer.setPositionB(pos);
   }
 
   double getPosition() {
@@ -127,14 +134,14 @@ class Player {
   }
 
   void prev() {
-    load(playList.prev(loopMode == LoopMode.Loop));
+    playList.prev(loopMode == LoopMode.Loop);
   }
 
   void next() {
     if (playMode == PlayMode.InOrder) {
-      load(playList.next(loopMode == LoopMode.Loop));
+      playList.next(loopMode == LoopMode.Loop);
     } else {
-      load(playList.random(loopMode == LoopMode.Loop));
+      playList.random();
     }
   }
 

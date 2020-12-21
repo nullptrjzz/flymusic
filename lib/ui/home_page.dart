@@ -1,5 +1,8 @@
+import 'dart:async';
+import 'dart:io';
+import 'dart:math';
 
-import 'package:file_picker_cross/file_picker_cross.dart';
+import 'package:file_chooser/file_chooser.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flymusic/ui/play_handler.dart';
@@ -16,34 +19,39 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   TextEditingController _controller = TextEditingController();
+  double playListTranslate = 300;
+  bool playListOpen = false;
+  bool playListTranslating = false;
+
   void _buildMenuBar() {
     menuBar.setApplicationMenu([
-      menuBar.Submenu(label: i18nConfig.get('menu.file'),children: [
+      menuBar.Submenu(label: i18nConfig.get('menu.file'), children: [
         menuBar.MenuItem(label: i18nConfig.get('menu.exit'), onClicked: () {
           SystemNavigator.pop(animated: true);
         })
       ]),
-      menuBar.Submenu(label: i18nConfig.get('menu.edit'),children: [
+      menuBar.Submenu(label: i18nConfig.get('menu.edit'), children: [
         menuBar.MenuDivider(),
-        menuBar.MenuItem(label: i18nConfig.get('menu.options'), onClicked: () {
-        })
+        menuBar.MenuItem(
+            label: i18nConfig.get('menu.options'), onClicked: () {})
       ]),
-      menuBar.Submenu(label: i18nConfig.get('menu.library'),children: [
+      menuBar.Submenu(label: i18nConfig.get('menu.library'), children: [
       ]),
-      menuBar.Submenu(label: i18nConfig.get('menu.control'),children: [
-        menuBar.MenuItem(label: i18nConfig.get('menu.skip_previous'), onClicked: () {
-        }),
-        menuBar.MenuItem(label: i18nConfig.get('menu.play_pause'), onClicked: () {
-        }),
-        menuBar.MenuItem(label: i18nConfig.get('menu.skip_next'), onClicked: () {
-        }),
+      menuBar.Submenu(label: i18nConfig.get('menu.control'), children: [
+        menuBar.MenuItem(
+            label: i18nConfig.get('menu.skip_previous'), onClicked: () {}),
+        menuBar.MenuItem(
+            label: i18nConfig.get('menu.play_pause'), onClicked: () {}),
+        menuBar.MenuItem(
+            label: i18nConfig.get('menu.skip_next'), onClicked: () {}),
         menuBar.MenuDivider(),
-        menuBar.MenuItem(label: i18nConfig.get('menu.stop'), onClicked: () {
-        })
+        menuBar.MenuItem(label: i18nConfig.get('menu.stop'), onClicked: () {})
       ]),
       menuBar.Submenu(label: i18nConfig.get('menu.help'), children: [
         menuBar.MenuItem(label: i18nConfig.get('menu.about'), onClicked: () {
-          showAboutDialog(context: context, applicationName: i18nConfig.get('app_name'), applicationVersion: '1.0');
+          showAboutDialog(context: context,
+              applicationName: i18nConfig.get('app_name'),
+              applicationVersion: '1.0');
         }),
       ]),
     ]);
@@ -55,6 +63,35 @@ class _HomePageState extends State<HomePage> {
     _buildMenuBar();
   }
 
+  void togglePlayList() {
+    if (!playListTranslating) {
+      playListTranslating = true;
+      Timer.periodic(Duration(milliseconds: 5), (timer) {
+        if (playListOpen) {
+          setState(() {
+            playListTranslate += 15;
+            if (playListTranslate >= 310) {
+              playListTranslate = 310;
+              timer.cancel();
+              playListTranslating = false;
+              playListOpen = false;
+            }
+          });
+        } else {
+          setState(() {
+            playListTranslate -= 15;
+            if (playListTranslate <= 0) {
+              playListTranslate = 0;
+              timer.cancel();
+              playListTranslating = false;
+              playListOpen = true;
+            }
+          });
+        }
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -63,61 +100,109 @@ class _HomePageState extends State<HomePage> {
         children: [
           Expanded(
             flex: 1,
-            child: Container(
-              padding: EdgeInsets.all(40),
-              child: Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    TextField(
-                      controller: _controller,
-                      decoration: InputDecoration(
-                        labelText: '音频文件路径',
-                        border: OutlineInputBorder(
-                          borderSide: BorderSide()
-                        )
+            child: Row(
+              mainAxisSize: MainAxisSize.max,
+              children: [
+                Expanded(
+                  flex: 1,
+                  child: Container(
+                    padding: EdgeInsets.all(40),
+                    child: Center(
+                      child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            TextField(
+                              controller: _controller,
+                              decoration: InputDecoration(
+                                  labelText: '音频文件路径',
+                                  border: OutlineInputBorder(
+                                      borderSide: BorderSide()
+                                  )
+                              ),
+                            ),
+
+                            Container(
+                              height: 100,
+                              child: Row(
+                                mainAxisSize: MainAxisSize.max,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  RaisedButton.icon(
+                                    label: Text('选择目录...'),
+                                    icon: Icon(Icons.more_horiz),
+                                    onPressed: () {
+                                      showOpenPanel(canSelectDirectories: true)
+                                          .then((value) {
+                                        if (!value.canceled) {
+                                          Directory dir = Directory(
+                                              value.paths.first);
+                                          final allowedExt = [
+                                            '.mp3',
+                                            '.flac',
+                                            '.ape',
+                                            '.wav',
+                                            '.ogg'
+                                          ];
+                                          setState(() {
+                                            audioPlayer.playList.addAll(
+                                                dir.listSync(recursive: true)
+                                                    .map((element) {
+                                                  if (allowedExt.contains(
+                                                      element.path.substring(
+                                                          max(element.path
+                                                              .lastIndexOf('.'), 0))
+                                                          .toLowerCase())) {
+                                                    return PlayListItem(
+                                                        fileLocation: element
+                                                            .path);
+                                                  }
+                                                }).toList());
+                                          });
+                                          ;
+                                        }
+                                      });
+                                    },
+                                  ),
+                                  RaisedButton.icon(
+                                    label: Text('选择文件...'),
+                                    icon: Icon(Icons.more_horiz),
+                                    onPressed: () {
+                                      showOpenPanel().then((value) {
+                                        if (!value.canceled)
+                                          _controller.text = value.paths.first;
+                                      });
+                                    },
+                                  ),
+
+                                  RaisedButton.icon(
+                                    label: Text('加载音频'),
+                                    icon: Icon(Icons.download_done_sharp),
+                                    onPressed: () {
+                                      setState(() {
+                                        audioPlayer.playList.addFirst(
+                                            PlayListItem(
+                                                fileLocation: _controller.text
+                                                    .toString()));
+                                      });
+                                    },
+                                  ),
+                                ],
+                              ),
+
+                            )
+                          ]
                       ),
                     ),
+                  ),),
 
-                    Container(
-                      height: 100,
-                      child: Row(
-                        mainAxisSize: MainAxisSize.max,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          RaisedButton.icon(
-                            label: Text('选择文件...'),
-                            icon: Icon(Icons.more_horiz),
-                            onPressed: () {
-                              FilePickerCross.importFromStorage(type: FileTypeCross.audio)
-                                  .then((value) {
-                                _controller.text = value.path;
-                              });
-                            },
-                          ),
-
-                          RaisedButton.icon(
-                            label: Text('加载音频'),
-                            icon: Icon(Icons.download_done_sharp),
-                            onPressed: () {
-                              audioPlayer.playList.addFirst(
-                                  PlayListItem(fileLocation: _controller.text.toString()));
-                            },
-                          ),
-                        ],
-                      ),
-
-                    )
-                  ]
-                ),
-              ),
+                PlayListView(audioPlayer.playList, playListTranslate),
+              ],
             ),
           ),
 
-          PlayHandler()
+          PlayHandler(togglePlayList)
         ],
       ),
     );
   }
-//** to be deleted **
 }

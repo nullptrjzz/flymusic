@@ -1,4 +1,6 @@
+import 'dart:io';
 import 'dart:math';
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
@@ -10,6 +12,9 @@ import 'package:flymusic/util/player.dart';
 Player audioPlayer = Player();
 
 class PlayHandler extends StatefulWidget {
+  final Function togglePlayListTranslate;
+
+  PlayHandler(this.togglePlayListTranslate);
 
   @override
   State createState() => _PlayHandlerState();
@@ -21,6 +26,7 @@ class _PlayHandlerState extends State<PlayHandler> {
 
   int _volume = 0;
   bool _mute = false;
+
   /// 防止进度条闪烁
   bool _drag = false;
   String _curName = 'FlyMusic';
@@ -40,9 +46,7 @@ class _PlayHandlerState extends State<PlayHandler> {
           _duration = d < 0 ? 0 : d;
         });
       }
-    }, (lo, pl, pa, st) {
-
-    });
+    }, (lo, pl, pa, st) {});
   }
 
   void _updatePosition(double position) {
@@ -77,42 +81,57 @@ class _PlayHandlerState extends State<PlayHandler> {
     var durText = '${duration.inMinutes < 10 ? '0' : ''}${duration.inMinutes}:'
         '${(duration.inSeconds % 60) < 10 ? '0' : ''}${(duration.inSeconds % 60)}';
 
-    return Material(
-      child: Padding(
-        padding: EdgeInsets.all(16),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // play buttons
-            IconButton(
-              onPressed: () {},
-              icon: Icon(Icons.skip_previous),
-              iconSize: 24,
-              splashRadius: 20,
-              // minWidth: 60,
-            ),
-            IconButton(
-              onPressed: audioPlayer.isPlaying() ? () {
-                audioPlayer.pause();
-              } : () {
-                audioPlayer.play();
-              },
-              icon: Icon(audioPlayer.isPlaying() ? Icons.pause : Icons.play_arrow),
-              iconSize: 36,
-              splashRadius: 24,
-              // minWidth: 60,
-            ),
-            IconButton(
-              onPressed: () {},
-              icon: Icon(Icons.skip_next),
-              iconSize: 24,
-              splashRadius: 20,
-              // minWidth: 60,
-            ),
+    // cover
+    File coverFile;
+    if (audioPlayer.playList.isNotEmpty &&
+        audioPlayer.playList.current > -1 &&
+        audioPlayer.playList[audioPlayer.playList.current] != null) {
+      String fileLoc = audioPlayer.playList[audioPlayer.playList.current].cover;
+      if (fileLoc != null && fileLoc.isNotEmpty) coverFile = File(fileLoc);
+    }
 
-            // progress indicator
-            Expanded(
-                child: Column(
+    return Material(
+      child: Stack(
+        children: [
+          Container(
+            padding: EdgeInsets.all(16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // play buttons
+                IconButton(
+                  onPressed: () {
+                    audioPlayer.prev();
+                  },
+                  icon: Icon(Icons.skip_previous),
+                  iconSize: 24,
+                  splashRadius: 20,
+                ),
+                IconButton(
+                  onPressed: audioPlayer.isPlaying()
+                      ? () {
+                          audioPlayer.pause();
+                        }
+                      : () {
+                          audioPlayer.play();
+                        },
+                  icon: Icon(
+                      audioPlayer.isPlaying() ? Icons.pause : Icons.play_arrow),
+                  iconSize: 36,
+                  splashRadius: 24,
+                ),
+                IconButton(
+                  onPressed: () {
+                    audioPlayer.next();
+                  },
+                  icon: Icon(Icons.skip_next),
+                  iconSize: 24,
+                  splashRadius: 20,
+                ),
+
+                // progress indicator
+                Expanded(
+                    child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
@@ -147,77 +166,87 @@ class _PlayHandlerState extends State<PlayHandler> {
                       },
                     )
                   ],
-                )
-            ),
+                )),
+                // other control buttons
 
-            // other control buttons
-
-            // 循环/单曲/不循环
-            IconButton(
-              onPressed: () {
-                setState(() {
-                  audioPlayer.loopMode =
-                      LoopMode.values[(audioPlayer.loopMode.index + 1) % 2];
-                });
-              },
-              icon: Icon(audioPlayer.loopMode == LoopMode.Loop ? Icons.sync : Icons.sync_disabled),
-              tooltip: audioPlayer.loopMode == LoopMode.Loop
-                  ? i18nConfig.get('player.repeat')
-                  : i18nConfig.get('player.no_repeat'),
-              iconSize: 24,
-              splashRadius: 20,
-            ),
-            // 顺序播放/随机播放
-            IconButton(
-              onPressed: () {
-                setState(() {
-                  audioPlayer.playMode =
-                      PlayMode.values[(audioPlayer.playMode.index + 1) % 3];
-                });
-              },
-              icon: Icon(audioPlayer.playMode == PlayMode.InOrder
-                  ? Icons.menu
-                  : audioPlayer.playMode == PlayMode.Random
-                  ? Icons.shuffle
-                  : Icons.looks_one_outlined
-              ),
-              tooltip: audioPlayer.playMode == PlayMode.InOrder
-                  ? i18nConfig.get('player.sequence_play')
-                  : audioPlayer.playMode == PlayMode.Random
-                  ? i18nConfig.get('player.random_play')
-                  : i18nConfig.get('player.single_play'),
-              iconSize: 24,
-              splashRadius: 20,
-            ),
-            IconButton(
-              onPressed: () {
-                _updateVolume(0, !_mute);
-              },
-              icon: Icon((_mute || _volume == 0) ? Icons.volume_mute : Icons.volume_up),
-              iconSize: 24,
-              splashRadius: 20,
-            ),
-            Theme(
-              data: ThemeData(
-                sliderTheme: FlyMusicVolumeSliderTheme()
-              ),
-              child: Container(
-                width: 100,
-                child: Slider(
-                    min: 0,
-                    max: 100,
-                    value: _volume.toDouble(),
-                    label: '$_volume%',
-                    onChanged: (v) => _updateVolume(v)
+                // 循环/单曲/不循环
+                IconButton(
+                  onPressed: () {
+                    setState(() {
+                      audioPlayer.loopMode =
+                          LoopMode.values[(audioPlayer.loopMode.index + 1) % 2];
+                    });
+                  },
+                  icon: Icon(audioPlayer.loopMode == LoopMode.Loop
+                      ? Icons.sync
+                      : Icons.sync_disabled),
+                  tooltip: audioPlayer.loopMode == LoopMode.Loop
+                      ? i18nConfig.get('player.repeat')
+                      : i18nConfig.get('player.no_repeat'),
+                  iconSize: 24,
+                  splashRadius: 20,
                 ),
-              ),
-            ),
+                // 顺序播放/随机播放
+                IconButton(
+                  onPressed: () {
+                    setState(() {
+                      audioPlayer.playMode =
+                          PlayMode.values[(audioPlayer.playMode.index + 1) % 3];
+                    });
+                  },
+                  icon: Icon(audioPlayer.playMode == PlayMode.InOrder
+                      ? Icons.menu
+                      : audioPlayer.playMode == PlayMode.Random
+                          ? Icons.shuffle
+                          : Icons.looks_one_outlined),
+                  tooltip: audioPlayer.playMode == PlayMode.InOrder
+                      ? i18nConfig.get('player.sequence_play')
+                      : audioPlayer.playMode == PlayMode.Random
+                          ? i18nConfig.get('player.random_play')
+                          : i18nConfig.get('player.single_play'),
+                  iconSize: 24,
+                  splashRadius: 20,
+                ),
+                IconButton(
+                  onPressed: () {
+                    _updateVolume(0, !_mute);
+                  },
+                  icon: Icon((_mute || _volume == 0)
+                      ? Icons.volume_mute
+                      : Icons.volume_up),
+                  iconSize: 24,
+                  splashRadius: 20,
+                ),
+                Theme(
+                  data: ThemeData(sliderTheme: FlyMusicVolumeSliderTheme()),
+                  child: Container(
+                    width: 100,
+                    child: Slider(
+                        min: 0,
+                        max: 100,
+                        value: _volume.toDouble(),
+                        label: '$_volume%',
+                        onChanged: (v) => _updateVolume(v)),
+                  ),
+                ),
 
-          ],
-        ),
+                // 播放列表
+                IconButton(
+                  onPressed: () {
+                    widget.togglePlayListTranslate();
+                  },
+                  icon: Icon(Icons.list_alt),
+                  tooltip: i18nConfig.get('player.playlist'),
+                  iconSize: 24,
+                  splashRadius: 20,
+                  // minWidth: 60,
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
-      elevation: 4,
+      elevation: 8,
     );
   }
-
 }

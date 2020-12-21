@@ -14,21 +14,21 @@ dependencies:
   flutter:
     sdk: flutter
 
-  cupertino_icons: ^1.0.1
+  cupertino_icons: ^1.0.2
   flutter_audio_plugin:
     path: ../flutter_audio_plugin
 
   path_provider: ^1.6.24
   fast_gbk: ^0.1.2
 
-  file_picker_cross: ^4.2.6
+#  file_picker_cross: ^4.2.6
   sqflite_common_ffi: ^1.1.1+1
   crypto: ^2.1.5
-#  file_chooser:
-#    git:
-#      url: git://github.com/google/flutter-desktop-embedding.git
-#      path: plugins/file_chooser
-#      ref: 040f36c82b63e8764ec2fd97066767503a667b6d
+  file_chooser:
+    git:
+      url: git://github.com/google/flutter-desktop-embedding.git
+      path: plugins/file_chooser
+      ref: 040f36c82b63e8764ec2fd97066767503a667b6d
 
   menubar:
     git:
