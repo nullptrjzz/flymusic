@@ -1,6 +1,9 @@
 {
   "tag": "test",
   "inner": {
-    "default_volume": 50
+    "default_volume": 50,
+    "list_loop": false,
+    "list_loop_mode": 0,
+    "list_play_mode": 0
   }
 }

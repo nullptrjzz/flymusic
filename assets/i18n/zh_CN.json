@@ -13,7 +13,16 @@
 
   "player": {
     "unknown": "未知",
-    "error_while_loading_file": "加载音频文件出错"
+    "error_while_loading_file": "加载音频文件出错",
+    "skip_previous": "上一曲",
+    "play_pause": "播放/暂停",
+    "skip_next": "下一曲",
+    "stop": "停止",
+    "sequence_play": "顺序播放",
+    "random_play": "随机播放",
+    "single_play": "单曲播放",
+    "repeat": "循环",
+    "no_repeat": "不循环"
   },
 
   "menu": {

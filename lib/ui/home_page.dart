@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flymusic/ui/play_handler.dart';
 import 'package:flymusic/util/config.dart';
+import 'package:flymusic/util/play_list.dart';
 import 'package:menubar/menubar.dart' as menuBar;
 
 class HomePage extends StatefulWidget {
@@ -99,7 +100,8 @@ class _HomePageState extends State<HomePage> {
                             label: Text('加载音频'),
                             icon: Icon(Icons.download_done_sharp),
                             onPressed: () {
-                              audioPlayer.load(_controller.text.toString());
+                              audioPlayer.playList.addFirst(
+                                  PlayListItem(fileLocation: _controller.text.toString()));
                             },
                           ),
                         ],

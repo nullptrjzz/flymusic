@@ -8,6 +8,7 @@ Config i18nConfig;
 Config sysConfig;
 FileConfigLoader sysConfigLoader;
 
+Directory docDir;
 final _cfgPath = '.flymusic/config.json';
 
 Future initI18nConfig() async {
@@ -17,7 +18,7 @@ Future initI18nConfig() async {
 }
 
 Future initSysConfig() async {
-  var docDir = await getApplicationDocumentsDirectory();
+  docDir = await getApplicationDocumentsDirectory();
   File cfgFile = File('${docDir.path}/$_cfgPath');
 
   if (!cfgFile.parent.existsSync()) {

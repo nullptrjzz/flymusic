@@ -3,6 +3,8 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flymusic/theme/theme.dart';
+import 'package:flymusic/util/config.dart';
+import 'package:flymusic/util/play_list.dart';
 import 'package:flymusic/util/player.dart';
 
 Player audioPlayer = Player();
@@ -149,9 +151,41 @@ class _PlayHandlerState extends State<PlayHandler> {
             ),
 
             // other control buttons
+
+            // 循环/单曲/不循环
             IconButton(
-              onPressed: () {},
-              icon: Icon(Icons.repeat),
+              onPressed: () {
+                setState(() {
+                  audioPlayer.loopMode =
+                      LoopMode.values[(audioPlayer.loopMode.index + 1) % 2];
+                });
+              },
+              icon: Icon(audioPlayer.loopMode == LoopMode.Loop ? Icons.sync : Icons.sync_disabled),
+              tooltip: audioPlayer.loopMode == LoopMode.Loop
+                  ? i18nConfig.get('player.repeat')
+                  : i18nConfig.get('player.no_repeat'),
+              iconSize: 24,
+              splashRadius: 20,
+            ),
+            // 顺序播放/随机播放
+            IconButton(
+              onPressed: () {
+                setState(() {
+                  audioPlayer.playMode =
+                      PlayMode.values[(audioPlayer.playMode.index + 1) % 3];
+                });
+              },
+              icon: Icon(audioPlayer.playMode == PlayMode.InOrder
+                  ? Icons.menu
+                  : audioPlayer.playMode == PlayMode.Random
+                  ? Icons.shuffle
+                  : Icons.looks_one_outlined
+              ),
+              tooltip: audioPlayer.playMode == PlayMode.InOrder
+                  ? i18nConfig.get('player.sequence_play')
+                  : audioPlayer.playMode == PlayMode.Random
+                  ? i18nConfig.get('player.random_play')
+                  : i18nConfig.get('player.single_play'),
               iconSize: 24,
               splashRadius: 20,
             ),
