@@ -21,6 +21,9 @@ dependencies:
   path_provider: ^1.6.24
   fast_gbk: ^0.1.2
 
+  act_like_desktop:
+    path: ../act_like_desktop
+
 #  file_picker_cross: ^4.2.6
   sqflite_common_ffi: ^1.1.1+1
   crypto: ^2.1.5

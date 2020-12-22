@@ -19,9 +19,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   TextEditingController _controller = TextEditingController();
-  double playListTranslate = 300;
-  bool playListOpen = false;
-  bool playListTranslating = false;
+  bool playListOpen = true;
 
   void _buildMenuBar() {
     menuBar.setApplicationMenu([
@@ -64,32 +62,9 @@ class _HomePageState extends State<HomePage> {
   }
 
   void togglePlayList() {
-    if (!playListTranslating) {
-      playListTranslating = true;
-      Timer.periodic(Duration(milliseconds: 5), (timer) {
-        if (playListOpen) {
-          setState(() {
-            playListTranslate += 15;
-            if (playListTranslate >= 310) {
-              playListTranslate = 310;
-              timer.cancel();
-              playListTranslating = false;
-              playListOpen = false;
-            }
-          });
-        } else {
-          setState(() {
-            playListTranslate -= 15;
-            if (playListTranslate <= 0) {
-              playListTranslate = 0;
-              timer.cancel();
-              playListTranslating = false;
-              playListOpen = true;
-            }
-          });
-        }
-      });
-    }
+    setState(() {
+      playListOpen = !playListOpen;
+    });
   }
 
   @override
@@ -195,7 +170,7 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),),
 
-                PlayListView(audioPlayer.playList, playListTranslate),
+                PlayListView(audioPlayer.playList, playListOpen),
               ],
             ),
           ),

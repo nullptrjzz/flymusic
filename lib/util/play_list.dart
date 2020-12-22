@@ -1,19 +1,20 @@
 import 'dart:collection';
 import 'dart:io';
 import 'dart:math';
-import 'package:vector_math/vector_math_64.dart' show Vector3;
 
+import 'package:act_like_desktop/act_like_desktop.dart';
 import 'package:crypto/crypto.dart';
 import 'package:fast_gbk/fast_gbk.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_audio_plugin/flutter_audio_plugin.dart';
-import 'package:flutter_audio_plugin/library.dart' as lib;
 import 'package:flymusic/util/config.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite_common/sqlite_api.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+
+import 'file_util.dart';
 
 final _cachePath = '.flymusic/cache';
 
@@ -32,12 +33,12 @@ class PlayListItem {
   }
 
   void loadInfo([bool refresh = false]) {
-    String name = fileLocation.substring(
-        fileLocation.lastIndexOf(RegExp('[/\\\\]+')) + 1);
-    if (name.contains('.')) name = name.substring(0, name.lastIndexOf('.'));
-    tags = audioTags(fileLocation) ?? {
-      'TITLE': name
-    };
+    tags = audioTags(fileLocation);
+    if (tags == null || tags.isEmpty) {
+      tags = {
+        'TITLE': fileNameWithoutExt(fileLocation)
+      };
+    }
     meta = audioMeta(fileLocation);
     Directory dir = Directory(docDir.path + '/' + _cachePath);
     if (!dir.existsSync()) dir.createSync(recursive: true);
@@ -46,10 +47,10 @@ class PlayListItem {
         .convert(Platform.isWindows
             ? gbk.encode(fileLocation)
             : fileLocation.codeUnits)
-        .toString();
+        .toString().toLowerCase();
     if (!refresh) {
       dir.listSync().forEach((element) {
-        if (element.path.split(RegExp('[/\\\\]')).last.startsWith(filePrefix)) {
+        if (fileName(element.path).toLowerCase().startsWith(filePrefix)) {
           covers.add(element.uri.toFilePath(windows: Platform.isWindows));
         }
       });
@@ -67,14 +68,11 @@ class PlayListItem {
         // 寻找本地封面
         Directory fileDir = File(fileLocation).parent;
         fileDir.listSync().forEach((element) {
-          final allowedExt = ['.jpg', '.jpeg', '.bmp', '.png', '.webp'];
-          if (allowedExt.contains(element.path.substring(element.path.lastIndexOf('.')).toLowerCase())) {
+          if (isPicture(element.path)) {
             // use it as a cover
-
             covers = [element.path];
-            if (element.path.substring(
-                element.path.lastIndexOf(RegExp('[/\\\\]')) + 1).toLowerCase()
-                .startsWith(name.toLowerCase()))
+
+            if (match(element.path, fileLocation))
               return;
           }
         });
@@ -238,101 +236,105 @@ class PlayList {
 
 class PlayListView extends StatelessWidget {
   final PlayList playList;
-  final double translateX;
+  final bool playListOpen;
   final double imageSize = 64;
 
-  PlayListView(this.playList, this.translateX);
+  PlayListView(this.playList, this.playListOpen);
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      transform: Matrix4.translation(Vector3.zero()..setValues(translateX, 0, 0)),
-      child: Material(
-        child: Container(
-          width: max(300 - translateX, 0),
-          child: ListView.builder(
-              itemCount: playList.size + 1,
-              itemBuilder: (context, index) {
-                if (index == 0) {
-                  // header
-                  return Padding(
-                    child: Text(
-                      i18nConfig.get('player.playlist') + ' (${playList?.size ?? 0})',
-                      style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.normal
-                      ),
+    if (!playListOpen)
+      return Container();
+    return Material(
+      child: DraggablePanel(
+        size: Size.fromWidth(300),
+        minSize: Size.fromWidth(200),
+        maxSize: Size.fromWidth(500),
+        draggableSides: DraggableSides(left: true),
+        child: ListView.builder(
+            itemCount: playList.size + 1,
+            itemBuilder: (context, index) {
+              if (index == 0) {
+                // header
+                return Padding(
+                  child: Text(
+                    i18nConfig.get('player.playlist') + ' (${playList?.size ?? 0})',
+                    style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.normal
                     ),
-                    padding: EdgeInsets.all(16),
-                  );
-                }
-                PlayListItem item = playList[index - 1];
-                Duration duration = Duration(milliseconds: item.duration ?? 0);
-                File coverFile = File(item.cover);
-                return FlatButton(
-                  onPressed: () {
-                    playList.setTo(index - 1);
-                  },
-                  padding: EdgeInsets.symmetric(vertical: 1),
-                  height: imageSize,
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // 专辑封面
-                      coverFile.existsSync()
-                          ? Image(
-                        width: imageSize,
-                        height: imageSize,
-                        fit: BoxFit.contain,
-                        image: FileImage(coverFile),
-                      )
-                          : Container(
-                        color: Colors.grey,
-                        width: imageSize,
-                        height: imageSize,
-                      ),
-
-                      Expanded(
-                          flex: 1,
-                          child: Container(
-                            padding: EdgeInsets.all(8),
-                            height: imageSize,
-                            child: Column(
-                              mainAxisSize: MainAxisSize.max,
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: Text(
-                                        item.title,
-                                        style: TextStyle(),
-                                        maxLines: 1,
-                                      ),
-                                    ),
-                                    Text(
-                                        '${duration.inMinutes < 10 ? '0' : ''}${duration.inMinutes}:'
-                                            '${(duration.inSeconds % 60) < 10 ? '0' : ''}${(duration.inSeconds % 60)}'),
-                                  ],
-                                ),
-
-                                Text(
-                                  item.artist,
-                                  style: TextStyle(color: Colors.grey),
-                                  maxLines: 1,
-                                )
-                              ],
-                            ),
-                          )
-                      ),
-                    ],
                   ),
+                  padding: EdgeInsets.all(16),
                 );
-              }),
-        ),
-        elevation: 8,
+              }
+              PlayListItem item = playList[index - 1];
+              Duration duration = Duration(milliseconds: item.duration ?? 0);
+              File coverFile = File(item.cover);
+              return FlatButton(
+                onPressed: () {
+                  playList.setTo(index - 1);
+                },
+                padding: EdgeInsets.symmetric(vertical: 1),
+                height: imageSize,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // 专辑封面
+                    coverFile.existsSync()
+                        ? Image(
+                      width: imageSize,
+                      height: imageSize,
+                      fit: BoxFit.contain,
+                      image: FileImage(coverFile),
+                    )
+                        : Container(
+                      color: Colors.grey,
+                      width: imageSize,
+                      height: imageSize,
+                    ),
+
+                    Expanded(
+                        flex: 1,
+                        child: Container(
+                          padding: EdgeInsets.all(8),
+                          height: imageSize,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.max,
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      item.title,
+                                      style: TextStyle(),
+                                      overflow: TextOverflow.ellipsis,
+                                      maxLines: 1,
+                                    ),
+                                  ),
+                                  Text(
+                                      '${duration.inMinutes < 10 ? '0' : ''}${duration.inMinutes}:'
+                                          '${(duration.inSeconds % 60) < 10 ? '0' : ''}${(duration.inSeconds % 60)}'),
+                                ],
+                              ),
+
+                              Text(
+                                item.artist,
+                                style: TextStyle(color: Colors.grey),
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
+                              )
+                            ],
+                          ),
+                        )
+                    ),
+                  ],
+                ),
+              );
+            }),
       ),
+      elevation: 8,
     );
   }
 }
