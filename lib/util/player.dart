@@ -49,7 +49,7 @@ class Player {
     setVolume(sysConfig.get('inner.default_volume'));
     loopMode = LoopMode.values[sysConfig.get('inner.list_loop_mode')];
     playMode = PlayMode.values[sysConfig.get('inner.list_play_mode')];
-    playList = PlayList();
+    playList = PlayList('playing');
     playList.onChange = (index, item) {
       load(item);
       play();

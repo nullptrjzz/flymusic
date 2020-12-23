@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flymusic/data/event_bus.dart';
 import 'package:flymusic/util/config.dart';
 import 'package:flymusic/util/player.dart';
 
@@ -21,18 +22,30 @@ class _InitializePageState extends State<InitializePage> {
   }
 
   Future initialize() async {
-    setState(() {
-      _stateText = 'Loading configs...';
-    });
+    eventBus.fire(AppInitEvent('', false));
     await initI18nConfig();
+    eventBus.fire(AppInitEvent(i18nConfig.get('splash_screen.read_system_config'), false));
     await initSysConfig();
+    eventBus.fire(AppInitEvent(i18nConfig.get('splash_screen.init_audio_player'), false));
     await initAudioPlayer();
+    eventBus.fire(AppInitEvent('', true));
   }
 
   @override
   void initState() {
     super.initState();
-    initialize().then((value) => _finish());
+    initialize();
+
+    // 订阅EventBus的消息结束该页面
+    eventBus.on<AppInitEvent>().listen((event) {
+      if (!event.finished) {
+        setState(() {
+          _stateText = event.state;
+        });
+      } else {
+        _finish();
+      }
+    });
   }
 
   @override

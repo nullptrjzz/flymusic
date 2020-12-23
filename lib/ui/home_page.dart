@@ -24,17 +24,18 @@ class _HomePageState extends State<HomePage> {
   void _buildMenuBar() {
     menuBar.setApplicationMenu([
       menuBar.Submenu(label: i18nConfig.get('menu.file'), children: [
-        menuBar.MenuItem(label: i18nConfig.get('menu.exit'), onClicked: () {
-          SystemNavigator.pop(animated: true);
-        })
+        menuBar.MenuItem(
+            label: i18nConfig.get('menu.exit'),
+            onClicked: () {
+              SystemNavigator.pop(animated: true);
+            })
       ]),
       menuBar.Submenu(label: i18nConfig.get('menu.edit'), children: [
         menuBar.MenuDivider(),
         menuBar.MenuItem(
             label: i18nConfig.get('menu.options'), onClicked: () {})
       ]),
-      menuBar.Submenu(label: i18nConfig.get('menu.library'), children: [
-      ]),
+      menuBar.Submenu(label: i18nConfig.get('menu.library'), children: []),
       menuBar.Submenu(label: i18nConfig.get('menu.control'), children: [
         menuBar.MenuItem(
             label: i18nConfig.get('menu.skip_previous'), onClicked: () {}),
@@ -46,11 +47,14 @@ class _HomePageState extends State<HomePage> {
         menuBar.MenuItem(label: i18nConfig.get('menu.stop'), onClicked: () {})
       ]),
       menuBar.Submenu(label: i18nConfig.get('menu.help'), children: [
-        menuBar.MenuItem(label: i18nConfig.get('menu.about'), onClicked: () {
-          showAboutDialog(context: context,
-              applicationName: i18nConfig.get('app_name'),
-              applicationVersion: '1.0');
-        }),
+        menuBar.MenuItem(
+            label: i18nConfig.get('menu.about'),
+            onClicked: () {
+              showAboutDialog(
+                  context: context,
+                  applicationName: i18nConfig.get('app_name'),
+                  applicationVersion: '1.0');
+            }),
       ]),
     ]);
   }
@@ -83,98 +87,90 @@ class _HomePageState extends State<HomePage> {
                   child: Container(
                     padding: EdgeInsets.all(40),
                     child: Center(
-                      child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            TextField(
-                              controller: _controller,
-                              decoration: InputDecoration(
-                                  labelText: '音频文件路径',
-                                  border: OutlineInputBorder(
-                                      borderSide: BorderSide()
-                                  )
-                              ),
-                            ),
-
-                            Container(
-                              height: 100,
-                              child: Row(
-                                mainAxisSize: MainAxisSize.max,
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  RaisedButton.icon(
-                                    label: Text('选择目录...'),
-                                    icon: Icon(Icons.more_horiz),
-                                    onPressed: () {
-                                      showOpenPanel(canSelectDirectories: true)
-                                          .then((value) {
-                                        if (!value.canceled) {
-                                          Directory dir = Directory(
-                                              value.paths.first);
-                                          final allowedExt = [
-                                            '.mp3',
-                                            '.flac',
-                                            '.ape',
-                                            '.wav',
-                                            '.ogg'
-                                          ];
-                                          setState(() {
-                                            audioPlayer.playList.addAll(
-                                                dir.listSync(recursive: true)
-                                                    .map((element) {
-                                                  if (allowedExt.contains(
-                                                      element.path.substring(
-                                                          max(element.path
-                                                              .lastIndexOf('.'), 0))
-                                                          .toLowerCase())) {
-                                                    return PlayListItem(
-                                                        fileLocation: element
-                                                            .path);
-                                                  }
-                                                }).toList());
-                                          });
-                                          ;
+                      child: Column(mainAxisSize: MainAxisSize.min, children: [
+                        TextField(
+                          controller: _controller,
+                          decoration: InputDecoration(
+                              labelText: '音频文件路径',
+                              border:
+                                  OutlineInputBorder(borderSide: BorderSide())),
+                        ),
+                        Container(
+                          height: 100,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.max,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              RaisedButton.icon(
+                                label: Text('选择目录...'),
+                                icon: Icon(Icons.more_horiz),
+                                onPressed: () {
+                                  showOpenPanel(canSelectDirectories: true)
+                                      .then((value) {
+                                    if (!value.canceled) {
+                                      Directory dir =
+                                          Directory(value.paths.first);
+                                      final allowedExt = [
+                                        '.mp3',
+                                        '.flac',
+                                        '.ape',
+                                        '.wav',
+                                        '.ogg'
+                                      ];
+                                      dir
+                                          .listSync(recursive: true)
+                                          .forEach((element) async {
+                                        if (allowedExt.contains(element.path
+                                            .substring(max(
+                                                element.path.lastIndexOf('.'),
+                                                0))
+                                            .toLowerCase())) {
+                                          PlayListItem(
+                                              fileLocation: element.path,
+                                              listId: 'playing');
                                         }
                                       });
-                                    },
-                                  ),
-                                  RaisedButton.icon(
-                                    label: Text('选择文件...'),
-                                    icon: Icon(Icons.more_horiz),
-                                    onPressed: () {
-                                      showOpenPanel().then((value) {
-                                        if (!value.canceled)
-                                          _controller.text = value.paths.first;
-                                      });
-                                    },
-                                  ),
-
-                                  RaisedButton.icon(
-                                    label: Text('加载音频'),
-                                    icon: Icon(Icons.download_done_sharp),
-                                    onPressed: () {
-                                      setState(() {
-                                        audioPlayer.playList.addFirst(
-                                            PlayListItem(
-                                                fileLocation: _controller.text
-                                                    .toString()));
-                                      });
-                                    },
-                                  ),
-                                ],
+                                    }
+                                  });
+                                },
                               ),
+                              RaisedButton.icon(
+                                label: Text('选择文件...'),
+                                icon: Icon(Icons.more_horiz),
+                                onPressed: () {
+                                  showOpenPanel().then((value) {
+                                    if (!value.canceled)
+                                      _controller.text = value.paths.first;
+                                  });
+                                },
+                              ),
+                              RaisedButton.icon(
+                                label: Text('加载音频'),
+                                icon: Icon(Icons.download_done_sharp),
+                                onPressed: () {
+                                  PlayListItem(
+                                      fileLocation:
+                                      _controller.text.toString(),
+                                      listId: 'playing');
+                                  setState(() {
 
-                            )
-                          ]
-                      ),
+                                    // audioPlayer.playList.addFirst(PlayListItem(
+                                    //     fileLocation:
+                                    //         _controller.text.toString()));
+                                  });
+                                },
+                              ),
+                            ],
+                          ),
+                        )
+                      ]),
                     ),
-                  ),),
-
+                  ),
+                ),
                 PlayListView(audioPlayer.playList, playListOpen),
               ],
             ),
           ),
-
           PlayHandler(togglePlayList)
         ],
       ),

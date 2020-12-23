@@ -4,9 +4,9 @@ packages:
   act_like_desktop:
     dependency: "direct main"
     description:
-      path: "../act_like_desktop"
-      relative: true
-    source: path
+      name: act_like_desktop
+      url: "https://mirrors.tuna.tsinghua.edu.cn/dart-pub"
+    source: hosted
     version: "0.0.1"
   async:
     dependency: transitive
@@ -78,6 +78,13 @@ packages:
       url: "https://mirrors.tuna.tsinghua.edu.cn/dart-pub"
     source: hosted
     version: "1.0.2"
+  event_bus:
+    dependency: "direct main"
+    description:
+      name: event_bus
+      url: "https://mirrors.tuna.tsinghua.edu.cn/dart-pub"
+    source: hosted
+    version: "1.1.1"
   fake_async:
     dependency: transitive
     description:
