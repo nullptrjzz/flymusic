@@ -48,4 +48,5 @@ app.*.map.json
 # Desktop project
 ios/
 android/
-linux/
+
+pubspec.lock

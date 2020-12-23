@@ -5,7 +5,6 @@ import 'dart:math';
 import 'package:act_like_desktop/act_like_desktop.dart';
 import 'package:crypto/crypto.dart';
 import 'package:fast_gbk/fast_gbk.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_audio_plugin/flutter_audio_plugin.dart';
@@ -318,7 +317,6 @@ class _PlayListViewState extends State<PlayListView> {
         maxSize: Size.fromWidth(500),
         draggableSides: DraggableSides(left: true),
         child: Scrollbar(
-          showTrackOnHover: true,
           controller: _controller,
           child: ListView.builder(
               itemCount: widget.playList.size + 1,
