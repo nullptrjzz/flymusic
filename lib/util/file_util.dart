@@ -1,3 +1,5 @@
+import 'dart:io';
+
 final RegExp extractFile = RegExp('[/\\\\]+');
 final allowedMusicExt = ['.mp3', '.flac', '.ape', '.wav', '.wma', '.mpeg', '.aiff', '.aac'];
 final allowedPicExt = ['.jpg', '.jpeg', '.bmp', '.png', '.webp'];
@@ -28,9 +30,11 @@ bool match(String a, String b) {
 }
 
 bool isMusic(String file) {
-  return allowedMusicExt.contains(fileExt(file).toLowerCase());
+  File f = File(file);
+  return allowedMusicExt.contains(fileExt(file).toLowerCase()) && f.lengthSync() > 0;
 }
 
 bool isPicture(String file) {
-  return allowedPicExt.contains(fileExt(file).toLowerCase());
+  File f = File(file);
+  return allowedPicExt.contains(fileExt(file).toLowerCase()) && f.lengthSync() > 0;
 }

@@ -358,7 +358,6 @@ class _PlayListViewState extends State<PlayListView> {
         maxSize: Size.fromWidth(500),
         draggableSides: DraggableSides(left: true),
         child: Scrollbar(
-          showTrackOnHover: true,
           controller: _controller,
           child: ListView.builder(
               itemCount: widget.playList.size + 1,
