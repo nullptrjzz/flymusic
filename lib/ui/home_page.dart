@@ -108,28 +108,7 @@ class _HomePageState extends State<HomePage> {
                                   showOpenPanel(canSelectDirectories: true)
                                       .then((value) {
                                     if (!value.canceled) {
-                                      Directory dir =
-                                          Directory(value.paths.first);
-                                      final allowedExt = [
-                                        '.mp3',
-                                        '.flac',
-                                        '.ape',
-                                        '.wav',
-                                        '.ogg'
-                                      ];
-                                      dir
-                                          .listSync(recursive: true)
-                                          .forEach((element) async {
-                                        if (allowedExt.contains(element.path
-                                            .substring(max(
-                                                element.path.lastIndexOf('.'),
-                                                0))
-                                            .toLowerCase())) {
-                                          PlayListItem(
-                                              fileLocation: element.path,
-                                              listId: 'playing');
-                                        }
-                                      });
+                                      addDirectory(Directory(value.paths.first));
                                     }
                                   });
                                 },
@@ -152,12 +131,6 @@ class _HomePageState extends State<HomePage> {
                                       fileLocation:
                                       _controller.text.toString(),
                                       listId: 'playing');
-                                  setState(() {
-
-                                    // audioPlayer.playList.addFirst(PlayListItem(
-                                    //     fileLocation:
-                                    //         _controller.text.toString()));
-                                  });
                                 },
                               ),
                             ],

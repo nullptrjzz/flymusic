@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flymusic/data/event_bus.dart';
 import 'package:flymusic/util/config.dart';
+import 'package:flymusic/util/isolate_pool.dart';
 import 'package:flymusic/util/player.dart';
 
 import 'home_page.dart';
@@ -28,6 +29,8 @@ class _InitializePageState extends State<InitializePage> {
     await initSysConfig();
     eventBus.fire(AppInitEvent(i18nConfig.get('splash_screen.init_audio_player'), false));
     await initAudioPlayer();
+    eventBus.fire(AppInitEvent(i18nConfig.get('splash_screen.init_isolate_pool'), false));
+    await initLoadBalancer();
     eventBus.fire(AppInitEvent('', true));
   }
 

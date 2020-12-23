@@ -23,6 +23,7 @@ dependencies:
 
   act_like_desktop: ^0.0.1
   event_bus: ^1.1.1
+  isolate: ^2.0.3
 
 #  file_picker_cross: ^4.2.6
   sqflite_common_ffi: ^1.1.1+1

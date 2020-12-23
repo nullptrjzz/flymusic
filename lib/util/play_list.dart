@@ -1,16 +1,22 @@
 import 'dart:collection';
 import 'dart:io';
+import 'dart:isolate';
 import 'dart:math';
 
 import 'package:act_like_desktop/act_like_desktop.dart';
 import 'package:crypto/crypto.dart';
+import 'package:event_bus/event_bus.dart';
 import 'package:fast_gbk/fast_gbk.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_audio_plugin/flutter_audio_plugin.dart';
 import 'package:flymusic/data/event_bus.dart';
+import 'package:flymusic/ui/play_handler.dart';
 import 'package:flymusic/util/config.dart';
+import 'package:flymusic/util/isolate_pool.dart';
+import 'package:isolate/isolate.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite_common/sqlite_api.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
@@ -29,7 +35,11 @@ class PlayListItem {
   String listId;
   bool addFirst;
 
-  PlayListItem({this.fileLocation, this.listId = '', bool doInit = true, this.addFirst = true}) {
+  PlayListItem(
+      {this.fileLocation,
+      this.listId = '',
+      bool doInit = true,
+      this.addFirst = true}) {
     if (doInit) {
       _init();
     }
@@ -38,22 +48,28 @@ class PlayListItem {
   /// for uninitialized item to do init
   ///
   /// Do not directly call it
-  void _init() {
+  void _init() async {
     checkValid();
     if (valid) {
-      loadInfo().then((value) {
-        prepared = true;
-        eventBus.fire(PlayListLoadEvent(listId, this, addFirst));
-      });
+      copyOf(await pool.run(asyncLoadInfo, this));
+      prepared = true;
+      eventBus.fire(PlayListLoadEvent(listId, this, addFirst));
     }
   }
 
+  /// use this function and [pool] to load item in background
+  static Future<PlayListItem> asyncLoadInfo(PlayListItem theItem) async {
+    await theItem.loadInfo();
+    return theItem;
+  }
+
   Future loadInfo([bool refresh = true]) async {
+    if (docDir == null) {
+      docDir = await getApplicationDocumentsDirectory();
+    }
     tags = audioTags(fileLocation);
     if (tags == null || tags.isEmpty || tags['TITLE'] == null) {
-      tags = {
-        'TITLE': fileNameWithoutExt(fileLocation)
-      };
+      tags = {'TITLE': fileNameWithoutExt(fileLocation)};
     }
     meta = audioMeta(fileLocation);
     Directory dir = Directory(docDir.path + '/' + _cachePath);
@@ -63,7 +79,8 @@ class PlayListItem {
         .convert(Platform.isWindows
             ? gbk.encode(fileLocation)
             : fileLocation.codeUnits)
-        .toString().toLowerCase();
+        .toString()
+        .toLowerCase();
     if (!refresh) {
       dir.listSync().forEach((element) {
         if (fileName(element.path).toLowerCase().startsWith(filePrefix)) {
@@ -88,8 +105,7 @@ class PlayListItem {
             // use it as a cover
             covers = [element.path];
 
-            if (match(element.path, fileLocation))
-              return;
+            if (match(element.path, fileLocation)) return;
           }
         });
       } else {
@@ -126,6 +142,22 @@ class PlayListItem {
 
   @override
   int get hashCode => fileLocation.hashCode;
+
+  @override
+  String toString() {
+    return 'PlayListItem{fileLocation: $fileLocation, valid: $valid, tags: $tags, meta: $meta, covers: $covers, prepared: $prepared, listId: $listId, addFirst: $addFirst}';
+  }
+
+  void copyOf(PlayListItem item) {
+    fileLocation = item.fileLocation;
+    valid = true;
+    tags = item.tags;
+    meta = item.meta;
+    covers = item.covers;
+    prepared = item.prepared;
+    listId = item.listId;
+    addFirst = item.addFirst;
+  }
 }
 
 class PlayList {
@@ -226,7 +258,8 @@ class PlayList {
 
   /// use this method to add audio files form outside
   void listAdd(String fileLocation) {
-    PlayListItem item = PlayListItem(fileLocation: fileLocation, listId: id, doInit: false, addFirst: false);
+    PlayListItem item = PlayListItem(
+        fileLocation: fileLocation, listId: id, doInit: false, addFirst: false);
     int index;
     if ((index = _list.indexOf(item)) > -1) {
       var presentItem = _list.removeAt(index);
@@ -238,7 +271,8 @@ class PlayList {
   }
 
   void listAddFirst(String fileLocation) {
-    PlayListItem item = PlayListItem(fileLocation: fileLocation, listId: id, doInit: false);
+    PlayListItem item =
+        PlayListItem(fileLocation: fileLocation, listId: id, doInit: false);
     int index;
     if ((index = _list.indexOf(item)) > -1) {
       var presentItem = _list.removeAt(index);
@@ -264,11 +298,15 @@ class PlayList {
   }
 
   void _addAll(List<PlayListItem> list) {
-    list.forEach((element) {_add(element);});
+    list.forEach((element) {
+      _add(element);
+    });
   }
 
   void _addAllFirst(List<PlayListItem> list) {
-    list.forEach((element) {_addFirst(element);});
+    list.forEach((element) {
+      _addFirst(element);
+    });
   }
 
   PlayListItem operator [](int i) => _list[i];
@@ -288,8 +326,11 @@ class PlayListView extends StatefulWidget {
 }
 
 class _PlayListViewState extends State<PlayListView> {
-
   final ScrollController _controller = ScrollController();
+
+  void refresh() {
+    setState(() {});
+  }
 
   @override
   void initState() {
@@ -309,8 +350,7 @@ class _PlayListViewState extends State<PlayListView> {
 
   @override
   Widget build(BuildContext context) {
-    if (!widget.playListOpen)
-      return Container();
+    if (!widget.playListOpen) return Container();
     return Material(
       child: DraggablePanel(
         size: Size.fromWidth(300),
@@ -327,11 +367,10 @@ class _PlayListViewState extends State<PlayListView> {
                   // header
                   return Padding(
                     child: Text(
-                      i18nConfig.get('player.playlist') + ' (${widget.playList?.size ?? 0})',
+                      i18nConfig.get('player.playlist') +
+                          ' (${widget.playList?.size ?? 0})',
                       style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.normal
-                      ),
+                          fontSize: 24, fontWeight: FontWeight.normal),
                     ),
                     padding: EdgeInsets.all(16),
                   );
@@ -352,19 +391,19 @@ class _PlayListViewState extends State<PlayListView> {
 
                       coverFile.existsSync()
                           ? Container(
-                        margin: EdgeInsets.all(1),
-                        child: Image(
-                          width: widget.imageSize,
-                          height: widget.imageSize,
-                          fit: BoxFit.contain,
-                          image: FileImage(coverFile),
-                        ),
-                      )
+                              margin: EdgeInsets.all(1),
+                              child: Image(
+                                width: widget.imageSize,
+                                height: widget.imageSize,
+                                fit: BoxFit.contain,
+                                image: FileImage(coverFile),
+                              ),
+                            )
                           : Container(
-                        color: Colors.grey,
-                        width: widget.imageSize + 2,
-                        height: widget.imageSize + 2,
-                      ),
+                              color: Colors.grey,
+                              width: widget.imageSize + 2,
+                              height: widget.imageSize + 2,
+                            ),
 
                       Expanded(
                           flex: 1,
@@ -388,10 +427,9 @@ class _PlayListViewState extends State<PlayListView> {
                                     ),
                                     Text(
                                         '${duration.inMinutes < 10 ? '0' : ''}${duration.inMinutes}:'
-                                            '${(duration.inSeconds % 60) < 10 ? '0' : ''}${(duration.inSeconds % 60)}'),
+                                        '${(duration.inSeconds % 60) < 10 ? '0' : ''}${(duration.inSeconds % 60)}'),
                                   ],
                                 ),
-
                                 Text(
                                   item.artist,
                                   style: TextStyle(color: Colors.grey),
@@ -400,8 +438,7 @@ class _PlayListViewState extends State<PlayListView> {
                                 )
                               ],
                             ),
-                          )
-                      ),
+                          )),
                     ],
                   ),
                 );
@@ -410,5 +447,15 @@ class _PlayListViewState extends State<PlayListView> {
       ),
       elevation: 8,
     );
+  }
+}
+
+Future addDirectory(Directory dir) async {
+  if (dir.existsSync()) {
+    dir.listSync(recursive: true).forEach((element) {
+      if (element is File && isMusic(element.path)) {
+        PlayListItem(fileLocation: element.path, listId: 'playing');
+      }
+    });
   }
 }

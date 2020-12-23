@@ -9,6 +9,7 @@
     "read_i18n_config": "读取语言配置",
     "read_system_config": "读取系统配置",
     "init_audio_player": "初始化播放器",
+    "init_isolate_pool": "初始化任务池",
     "finished": "初始化完成"
   },
 
