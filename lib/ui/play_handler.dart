@@ -9,7 +9,7 @@ import 'package:flymusic/util/config.dart';
 import 'package:flymusic/util/play_list.dart';
 import 'package:flymusic/util/player.dart';
 
-Player audioPlayer = Player();
+Player globalPlayer = Player();
 
 class PlayHandler extends StatefulWidget {
   final Function togglePlayListTranslate;
@@ -34,8 +34,8 @@ class _PlayHandlerState extends State<PlayHandler> {
   @override
   void initState() {
     super.initState();
-    _volume = audioPlayer.volume;
-    audioPlayer.listen((name) {
+    _volume = globalPlayer.volume;
+    globalPlayer.listen((name) {
       setState(() {
         _curName = name;
       });
@@ -53,8 +53,8 @@ class _PlayHandlerState extends State<PlayHandler> {
     setState(() {
       _position = position;
     });
-    audioPlayer.setPosition(position);
-    audioPlayer.play();
+    globalPlayer.setPosition(position);
+    globalPlayer.play();
   }
 
   void _updateVolume(double v, [bool mute]) {
@@ -68,7 +68,7 @@ class _PlayHandlerState extends State<PlayHandler> {
         _volume = v.toInt();
       });
     }
-    audioPlayer.setVolume(_mute ? 0 : _volume);
+    globalPlayer.setVolume(_mute ? 0 : _volume);
   }
 
   @override
@@ -83,10 +83,10 @@ class _PlayHandlerState extends State<PlayHandler> {
 
     // cover
     File coverFile;
-    if (audioPlayer.playList.isNotEmpty &&
-        audioPlayer.playList.current > -1 &&
-        audioPlayer.playList[audioPlayer.playList.current] != null) {
-      String fileLoc = audioPlayer.playList[audioPlayer.playList.current].cover;
+    if (globalPlayer.playList.isNotEmpty &&
+        globalPlayer.playList.current > -1 &&
+        globalPlayer.playList[globalPlayer.playList.current] != null) {
+      String fileLoc = globalPlayer.playList[globalPlayer.playList.current].cover;
       if (fileLoc != null && fileLoc.isNotEmpty) coverFile = File(fileLoc);
     }
 
@@ -101,28 +101,28 @@ class _PlayHandlerState extends State<PlayHandler> {
                 // play buttons
                 IconButton(
                   onPressed: () {
-                    audioPlayer.prev();
+                    globalPlayer.prev();
                   },
                   icon: Icon(Icons.skip_previous),
                   iconSize: 24,
                   splashRadius: 20,
                 ),
                 IconButton(
-                  onPressed: audioPlayer.isPlaying()
+                  onPressed: globalPlayer.isPlaying()
                       ? () {
-                          audioPlayer.pause();
+                          globalPlayer.pause();
                         }
                       : () {
-                          audioPlayer.play();
+                          globalPlayer.play();
                         },
                   icon: Icon(
-                      audioPlayer.isPlaying() ? Icons.pause : Icons.play_arrow),
+                      globalPlayer.isPlaying() ? Icons.pause : Icons.play_arrow),
                   iconSize: 36,
                   splashRadius: 24,
                 ),
                 IconButton(
                   onPressed: () {
-                    audioPlayer.next();
+                    globalPlayer.next();
                   },
                   icon: Icon(Icons.skip_next),
                   iconSize: 24,
@@ -158,7 +158,7 @@ class _PlayHandlerState extends State<PlayHandler> {
                       },
                       onChangeStart: (pos) {
                         _drag = true;
-                        audioPlayer.pause();
+                        globalPlayer.pause();
                       },
                       onChangeEnd: (pos) {
                         _drag = false;
@@ -173,14 +173,14 @@ class _PlayHandlerState extends State<PlayHandler> {
                 IconButton(
                   onPressed: () {
                     setState(() {
-                      audioPlayer.loopMode =
-                          LoopMode.values[(audioPlayer.loopMode.index + 1) % 2];
+                      globalPlayer.loopMode =
+                          LoopMode.values[(globalPlayer.loopMode.index + 1) % 2];
                     });
                   },
-                  icon: Icon(audioPlayer.loopMode == LoopMode.Loop
+                  icon: Icon(globalPlayer.loopMode == LoopMode.Loop
                       ? Icons.sync
                       : Icons.sync_disabled),
-                  tooltip: audioPlayer.loopMode == LoopMode.Loop
+                  tooltip: globalPlayer.loopMode == LoopMode.Loop
                       ? i18nConfig.get('player.repeat')
                       : i18nConfig.get('player.no_repeat'),
                   iconSize: 24,
@@ -190,18 +190,18 @@ class _PlayHandlerState extends State<PlayHandler> {
                 IconButton(
                   onPressed: () {
                     setState(() {
-                      audioPlayer.playMode =
-                          PlayMode.values[(audioPlayer.playMode.index + 1) % 3];
+                      globalPlayer.playMode =
+                          PlayMode.values[(globalPlayer.playMode.index + 1) % 3];
                     });
                   },
-                  icon: Icon(audioPlayer.playMode == PlayMode.InOrder
+                  icon: Icon(globalPlayer.playMode == PlayMode.InOrder
                       ? Icons.menu
-                      : audioPlayer.playMode == PlayMode.Random
+                      : globalPlayer.playMode == PlayMode.Random
                           ? Icons.shuffle
                           : Icons.looks_one_outlined),
-                  tooltip: audioPlayer.playMode == PlayMode.InOrder
+                  tooltip: globalPlayer.playMode == PlayMode.InOrder
                       ? i18nConfig.get('player.sequence_play')
-                      : audioPlayer.playMode == PlayMode.Random
+                      : globalPlayer.playMode == PlayMode.Random
                           ? i18nConfig.get('player.random_play')
                           : i18nConfig.get('player.single_play'),
                   iconSize: 24,

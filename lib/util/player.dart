@@ -10,6 +10,10 @@ Future initAudioPlayer() async {
   audioPlayer = AudioPlayer(debug: true);
 }
 
+void finalizePlayer() {
+  audioPlayer.close();
+}
+
 enum PlayMode {
   InOrder, Random, Single
 }

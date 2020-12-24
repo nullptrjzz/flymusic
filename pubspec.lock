@@ -4,10 +4,10 @@ packages:
   act_like_desktop:
     dependency: "direct main"
     description:
-      name: act_like_desktop
-      url: "https://mirrors.tuna.tsinghua.edu.cn/dart-pub"
-    source: hosted
-    version: "0.0.1"
+      path: "../act_like_desktop"
+      relative: true
+    source: path
+    version: "0.0.2"
   async:
     dependency: transitive
     description:

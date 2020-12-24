@@ -1,8 +1,12 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flymusic/theme/theme.dart';
 import 'package:flymusic/ui/initialize.dart';
 import 'package:window_size/window_size.dart' as windowSize;
 import 'dart:math' as math;
+
+import 'util/player.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,6 +27,12 @@ void main() {
   });
 
   runApp(FlyMusicApp());
+}
+
+void exitApp() {
+  // 销毁播放器实例
+  finalizePlayer();
+  exit(0);
 }
 
 class FlyMusicApp extends StatelessWidget {
