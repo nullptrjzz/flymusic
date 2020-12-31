@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_audio_plugin/flutter_audio_plugin.dart';
+import 'package:flymusic/data/event_bus.dart';
 import 'package:flymusic/util/config.dart';
 import 'package:flymusic/util/play_list.dart';
 
@@ -70,6 +71,18 @@ class Player {
       } else {
         stop();
         next();
+      }
+    });
+
+    // listen rpc event
+    eventBus.on<RpcEvent>().listen((event) {
+      if (event.id == 'KEY_HOOK') {
+        switch (event.action) {
+          case 'play': if (isPlaying()) pause(); else play(); break;
+          case 'prev': prev(); break;
+          case 'next': next(); break;
+          case 'stop': stop(); break;
+        }
       }
     });
   }
@@ -161,6 +174,7 @@ class Player {
     this._playListener = playListener;
     audioPlayer.setPositionListener(_playListener);
     audioPlayer.setStateListener(stateListener);
+    audioPlayer.setRpcListener((id, action) => eventBus.fire(RpcEvent(id, action)));
   }
 
   void close() {

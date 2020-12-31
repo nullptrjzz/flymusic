@@ -19,3 +19,10 @@ class PlayListLoadEvent {
 
   PlayListLoadEvent(this.id, this.item, [this.addFirst]);
 }
+
+class RpcEvent {
+  String id;
+  String action;
+
+  RpcEvent(this.id, this.action);
+}
