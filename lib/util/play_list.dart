@@ -101,7 +101,7 @@ class PlayListItem {
         // 寻找本地封面
         Directory fileDir = File(fileLocation).parent;
         fileDir.listSync().forEach((element) {
-          if (isPicture(element.path)) {
+          if (element.path.toLowerCase().startsWith("cover") && isPicture(element.path)) {
             // use it as a cover
             covers = [element.path];
 

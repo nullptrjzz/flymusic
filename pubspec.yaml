@@ -22,7 +22,8 @@ dependencies:
   fast_gbk: ^0.1.2
 
   act_like_desktop:
-    path: ../act_like_desktop
+    git:
+      url: git@github.com:nullptrjzz/act_like_desktop.git
   event_bus: ^1.1.1
   isolate: ^2.0.3
 

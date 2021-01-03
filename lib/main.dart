@@ -21,7 +21,7 @@ void main() {
       final frame = Rect.fromLTWH(left, top, width, height);
       windowSize.setWindowFrame(frame);
 
-      windowSize.setWindowMinSize(Size(800, 600));
+      // windowSize.setWindowMinSize(Size(800, 600));
     }
 
   });
