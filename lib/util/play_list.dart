@@ -1,22 +1,16 @@
 import 'dart:collection';
 import 'dart:io';
-import 'dart:isolate';
 import 'dart:math';
 
 import 'package:act_like_desktop/act_like_desktop.dart';
 import 'package:crypto/crypto.dart';
-import 'package:event_bus/event_bus.dart';
 import 'package:fast_gbk/fast_gbk.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_audio_plugin/flutter_audio_plugin.dart';
 import 'package:flymusic/data/event_bus.dart';
-import 'package:flymusic/ui/play_handler.dart';
 import 'package:flymusic/util/config.dart';
 import 'package:flymusic/util/isolate_pool.dart';
-import 'package:isolate/isolate.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite_common/sqlite_api.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
@@ -67,7 +61,7 @@ class PlayListItem {
     if (docDir == null) {
       docDir = await getApplicationDocumentsDirectory();
     }
-    tags = audioTags(fileLocation);
+    tags = audioProperties(fileLocation);
     if (tags == null || tags.isEmpty || tags['TITLE'] == null) {
       tags = {'TITLE': fileNameWithoutExt(fileLocation)};
     }
@@ -118,7 +112,13 @@ class PlayListItem {
 
   String get title => tags['TITLE'] ?? '';
 
-  String get artist => tags['ARTIST'] ?? '';
+  List get artist {
+    if (tags['ARTIST'] == null) {
+      return [];
+    } else if (tags['ARTIST'] is List) {
+      return tags['ARTIST'];
+    } else return [tags['ARTIST']];
+  }
 
   String get cover => covers.isEmpty ? '' : covers.first;
 
@@ -252,6 +252,10 @@ class PlayList {
       throw ArgumentError.value(index, 'index', 'out of bound');
     }
     current = index;
+    if (index == -1) {
+      if (onChange != null) onChange(current, null);
+      return null;
+    }
     if (onChange != null) onChange(current, _list[current]);
     return _list[current];
   }
@@ -307,6 +311,22 @@ class PlayList {
     list.forEach((element) {
       _addFirst(element);
     });
+  }
+
+  void _remove(int index) {
+    if (index == current) {
+      setTo(-1);
+      _list.removeAt(index);
+    } else {
+      PlayListItem curItem = _list[current];
+      _list.removeAt(index);
+      current = _list.indexOf(curItem);
+    }
+  }
+
+  void _removeAll() {
+    _list.clear();
+    setTo(-1);
   }
 
   PlayListItem operator [](int i) => _list[i];
@@ -365,11 +385,30 @@ class _PlayListViewState extends State<PlayListView> {
                 if (index == 0) {
                   // header
                   return Padding(
-                    child: Text(
-                      i18nConfig.get('player.playlist') +
-                          ' (${widget.playList?.size ?? 0})',
-                      style: TextStyle(
-                          fontSize: 24, fontWeight: FontWeight.normal),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.max,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          i18nConfig.get('player.playlist') +
+                              ' (${widget.playList?.size ?? 0})',
+                          style: TextStyle(
+                              fontSize: 24, fontWeight: FontWeight.normal),
+                        ),
+
+                        IconButton(
+                          onPressed: () {
+                            setState(() {
+                              widget.playList._removeAll();
+                            });
+                          },
+                          icon: Icon(Icons.delete_sweep),
+                          iconSize: 24,
+                          splashRadius: 20,
+                          tooltip: i18nConfig.get('player.playlist_clear'),
+                        )
+
+                      ],
                     ),
                     padding: EdgeInsets.all(16),
                   );
@@ -430,7 +469,7 @@ class _PlayListViewState extends State<PlayListView> {
                                   ],
                                 ),
                                 Text(
-                                  item.artist,
+                                  item.artist.join(';'),
                                   style: TextStyle(color: Colors.grey),
                                   overflow: TextOverflow.ellipsis,
                                   maxLines: 1,

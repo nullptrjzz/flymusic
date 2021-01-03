@@ -25,7 +25,8 @@
     "single_play": "单曲播放",
     "repeat": "循环",
     "no_repeat": "不循环",
-    "playlist": "播放列表"
+    "playlist": "播放列表",
+    "playlist_clear": "清空播放列表"
   },
 
   "menu": {

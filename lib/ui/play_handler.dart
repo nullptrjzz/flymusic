@@ -46,7 +46,13 @@ class _PlayHandlerState extends State<PlayHandler> {
           _duration = d < 0 ? 0 : d;
         });
       }
-    }, (lo, pl, pa, st) {});
+    }, (lo, pl, pa, st) {
+      if (st) {
+        setState(() {
+          _curName = 'FlyMusic';
+        });
+      }
+    });
   }
 
   void _updatePosition(double position) {

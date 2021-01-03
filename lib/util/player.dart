@@ -56,8 +56,12 @@ class Player {
     playMode = PlayMode.values[sysConfig.get('inner.list_play_mode')];
     playList = PlayList('playing');
     playList.onChange = (index, item) {
-      load(item);
-      play();
+      if (index == -1) {
+        stop();
+      } else {
+        load(item);
+        play();
+      }
     };
     audioPlayer.setFinishListener(() {
       if (playMode == PlayMode.Single) {
@@ -106,8 +110,8 @@ class Player {
       playListItem.valid = true;
       if (_loadListener != null) {
         _loadListener('${playListItem.title ?? playListItem.fileLocation.split(_uriTitlePattern).last} - '
-            '${playListItem.artist == null ? i18nConfig.get('player.unknown')
-            : playListItem.artist.replaceAll(_artistPattern, '/')}');
+            '${playListItem.artist.isEmpty ? i18nConfig.get('player.unknown')
+            : playListItem.artist.join('/')}');
       }
     } else {
       playListItem.valid = false;
